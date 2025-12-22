@@ -1,4 +1,5 @@
 using System.Linq;
+using BoyDoILoveInformation.Core;
 using GorillaLocomotion;
 using GorillaNetworking;
 using UnityEngine;
@@ -35,6 +36,9 @@ public class BDILIUtils : MonoBehaviour
             {
                 if (!Extensions.PlayerMods.ContainsKey(rig))
                     Extensions.PlayerMods[rig] = [];
+                
+                if (!rig.HasCosmetics())
+                    continue;
 
                 CosmeticsController.CosmeticSet cosmeticSet = rig.cosmeticSet;
                 bool hasCosmetx =
@@ -46,7 +50,8 @@ public class BDILIUtils : MonoBehaviour
                 {
                     case true when !Extensions.PlayerMods[rig].Contains("[<color=red>CosmetX</color>]"):
                         Extensions.PlayerMods[rig].Add("[<color=red>CosmetX</color>]");
-
+                        Notifications.SendNotification(
+                                $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has CosmetX installed.");
                         break;
 
                     case false when Extensions.PlayerMods[rig].Contains("[<color=red>CosmetX</color>]"):

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BoyDoILoveInformation.Core;
 using BoyDoILoveInformation.Tools;
 using ExitGames.Client.Photon;
 using HarmonyLib;
@@ -55,6 +56,10 @@ public static class PlayerCosmeticsLoadedPatch
             if (Plugin.KnownMods.TryGetValue(key, out string mod))
                 mods.Add($"[<color=green>{mod}</color>]");
         }
+        
+        if (cheats.Count > 0)
+            Notifications.SendNotification(
+                    $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has the following cheats: {string.Join(", ", cheats)}.");
 
         Extensions.PlayerMods[rig] = mods;
 

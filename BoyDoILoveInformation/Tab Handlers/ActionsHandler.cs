@@ -1,5 +1,6 @@
 using System.Linq;
 using BoyDoILoveInformation.Core;
+using BoyDoILoveInformation.Patches;
 using TMPro;
 
 namespace BoyDoILoveInformation.Tab_Handlers;
@@ -92,6 +93,29 @@ public class ActionsHandler : TabHandlerBase
                                                                                .text = scoreboardLine.muteButton.isOn
                                                                                 ? "Unmute"
                                                                                 : "Mute";
+                                                                    };
+
+        transform.GetChild(4).AddComponent<BDILIButton>().OnPress = () =>
+                                                                    {
+                                                                        if (VoicePrioritizationPatch.PrioritizedPeople
+                                                                           .Contains(InformationHandler
+                                                                                   .ChosenRig))
+                                                                            VoicePrioritizationPatch.PrioritizedPeople
+                                                                                   .Remove(InformationHandler
+                                                                                           .ChosenRig);
+                                                                        else
+                                                                            VoicePrioritizationPatch.PrioritizedPeople
+                                                                                   .Add(InformationHandler
+                                                                                           .ChosenRig);
+
+                                                                        transform.GetChild(4)
+                                                                               .GetComponentInChildren<TextMeshPro>()
+                                                                               .text = VoicePrioritizationPatch
+                                                                               .PrioritizedPeople.Contains(
+                                                                                        InformationHandler
+                                                                                               .ChosenRig)
+                                                                                ? "Unprioritize"
+                                                                                : "Prioritize";
                                                                     };
     }
 }

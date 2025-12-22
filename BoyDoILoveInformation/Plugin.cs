@@ -65,6 +65,7 @@ public class Plugin : BaseUnityPlugin
 
         BDILIClick = LoadWavFromResource("BoyDoILoveInformation.Resources.ButtonPressWood.wav");
 
+        gameObject.AddComponent<Notifications>();
         gameObject.AddComponent<BDILIUtils>();
         gameObject.AddComponent<MenuHandler>();
     }

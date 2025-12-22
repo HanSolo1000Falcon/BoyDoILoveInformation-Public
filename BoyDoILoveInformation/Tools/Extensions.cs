@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Photon.Pun;
 
 namespace BoyDoILoveInformation.Tools;
@@ -60,5 +61,64 @@ public static class Extensions
         }
 
         return int.MaxValue;
+    }
+    
+    public static string InsertNewlinesWithRichText(this string input, int interval)
+    {
+        if (string.IsNullOrEmpty(input) || interval <= 0)
+            return input;
+
+        StringBuilder output                       = new();
+        int           visibleCount                 = 0;
+        int           lastWhitespaceIndex          = -1;
+        int           outputLengthAtLastWhitespace = -1;
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+
+            if (c == '<')
+            {
+                int tagEnd = input.IndexOf('>', i);
+                if (tagEnd == -1)
+                {
+                    output.Append(c);
+
+                    continue;
+                }
+
+                output.Append(input.AsSpan(i, tagEnd - i + 1));
+                i = tagEnd;
+
+                continue;
+            }
+
+            if (char.IsWhiteSpace(c))
+            {
+                lastWhitespaceIndex          = i;
+                outputLengthAtLastWhitespace = output.Length;
+            }
+
+            output.Append(c);
+            visibleCount++;
+
+            if (visibleCount >= interval)
+            {
+                if (outputLengthAtLastWhitespace != -1)
+                {
+                    output[outputLengthAtLastWhitespace] = '\n';
+                    visibleCount                         = i - lastWhitespaceIndex;
+                    lastWhitespaceIndex                  = -1;
+                    outputLengthAtLastWhitespace         = -1;
+                }
+                else
+                {
+                    output.Append('\n');
+                    visibleCount = 0;
+                }
+            }
+        }
+
+        return output.ToString();
     }
 }
