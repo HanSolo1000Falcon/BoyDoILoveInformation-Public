@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using BoyDoILoveInformation.Core;
+using BoyDoILoveInformation.Patches;
 using GorillaLocomotion;
 using GorillaNetworking;
+using Photon.Pun;
 using UnityEngine;
 
 namespace BoyDoILoveInformation.Tools;
@@ -10,11 +14,22 @@ public class BDILIUtils : MonoBehaviour
 {
     public static Transform RealRightController;
     public static Transform RealLeftController;
+    
+    public static readonly Dictionary<VRRig, int> PlayerPing = new();
+    private int GetPing(VRRig rig)
+    {
+        double ping     = Math.Abs((rig.velocityHistoryList[0].time - PhotonNetwork.Time) * 1000);
+        int    safePing = (int)Math.Clamp(Math.Round(ping), 0, int.MaxValue);
+
+        return safePing;
+    }
 
     private void Start()
     {
         RealRightController = new GameObject("RealRightController").transform;
         RealLeftController  = new GameObject("RealLeftController").transform;
+        
+        PlayerSerializePatch.OnPlayerSerialize += rig => { PlayerPing[rig] = GetPing(rig); };
     }
 
     private void LateUpdate()

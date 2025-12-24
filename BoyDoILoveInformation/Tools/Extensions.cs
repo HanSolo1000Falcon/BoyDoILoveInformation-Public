@@ -43,25 +43,8 @@ public static class Extensions
 
     public static bool HasCosmetics(this VRRig rig) => PlayersWithCosmetics.Contains(rig);
 
-    public static int GetPing(this VRRig rig)
-    {
-        try
-        {
-            CircularBuffer<VRRig.VelocityTime> history = rig.velocityHistoryList;
-            if (history != null && history.Count > 0)
-            {
-                double ping = Math.Abs((history[0].time - PhotonNetwork.Time) * 1000);
-
-                return (int)Math.Clamp(Math.Round(ping), 0, int.MaxValue);
-            }
-        }
-        catch
-        {
-            // ignored
-        }
-
-        return int.MaxValue;
-    }
+    public static int GetPing(this VRRig rig) =>
+            BDILIUtils.PlayerPing.TryGetValue(rig, out int ping) ? ping : PhotonNetwork.GetPing();
     
     public static string InsertNewlinesWithRichText(this string input, int interval)
     {
