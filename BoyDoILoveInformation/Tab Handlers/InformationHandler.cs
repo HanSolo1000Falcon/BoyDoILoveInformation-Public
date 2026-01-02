@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using BoyDoILoveInformation.Tools;
 using GorillaLocomotion;
 using TMPro;
@@ -96,15 +97,12 @@ public class InformationHandler : TabHandlerBase
         else
         {
             line.enabled = false;
-            int    fpsInt = ChosenRig.fps;
-            string colour = fpsInt < 60 ? "red" : fpsInt < 72 ? "yellow" : "green";
-            fps.text        = $"<color={colour}>{fpsInt}</color> FPS";
-            colourCode.text = ParseIntoColourCode(ChosenRig.playerColor);
 
             if (lastUpdate + 0.1f < Time.time)
             {
-                string pingColour = ChosenRig.GetPing() > 100 ? ChosenRig.GetPing() > 250 ? "red" : "orange" : "green";
-                ping.text = $"<color={pingColour}>{ChosenRig.GetPing()}</color> ms";
+                string     pingColour       = ChosenRig.GetPing() > 100 ? ChosenRig.GetPing() > 250 ? "red" : "orange" : "green";
+                bool isPlayerOptedOut = BDILIUtils.OptOutCache.ContainsKey(ChosenRig.OwningNetPlayer.UserId) && BDILIUtils.OptOutCache[ChosenRig.OwningNetPlayer.UserId];
+                ping.text = !isPlayerOptedOut ? $"<color={pingColour}>{ChosenRig.GetPing()}</color> ms" : $"<color=green>{Random.Range(50, 60)}</color> ms";
 
                 Vector3 playerSpeed = (ChosenRig.transform.position - lastPos) / (Time.time - lastUpdate);
                 lastPos = ChosenRig.transform.position;
@@ -113,7 +111,12 @@ public class InformationHandler : TabHandlerBase
                                              : "red";
 
                 velocity.text = $"<color={speedColour}>{playerSpeed.magnitude:F1}</color> m/s";
-
+                
+                int    fpsInt = ChosenRig.fps;
+                string colour = fpsInt < 60 ? "red" : fpsInt < 72 ? "yellow" : "green";
+                fps.text        = !isPlayerOptedOut ? $"<color={colour}>{fpsInt}</color> FPS" : $"<color=green>{Random.Range(87, 91)}</color> FPS";
+                colourCode.text = ParseIntoColourCode(ChosenRig.playerColor);
+                
                 lastUpdate = Time.time;
             }
 

@@ -13,5 +13,8 @@ public class PlayerRigCachedPatch
         Extensions.PlayersWithCosmetics.Remove(vrrig);
         Extensions.PlayerPlatforms.Remove(vrrig);
         Extensions.PlayerMods.Remove(vrrig);
+        PunCallbacks.CheatsNotifiedAbout.Remove(vrrig);
+        BDILIUtils.HasNotifiedAboutCosmetX.Remove(vrrig);
+        if (VoicePrioritizationPatch.PrioritizedPeople.Contains(vrrig)) VoicePrioritizationPatch.PrioritizedPeople.Remove(vrrig);
     }
 }

@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using BoyDoILoveInformation.Core;
-using BoyDoILoveInformation.Patches;
 using GorillaLocomotion;
 using GorillaNetworking;
-using Photon.Pun;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace BoyDoILoveInformation.Tools;
@@ -14,9 +17,13 @@ public class BDILIUtils : MonoBehaviour
 {
     public static Action<VRRig> OnPlayerCosmeticsLoaded;
     public static Action<VRRig> OnPlayerRigCached;
-    
+
     public static Transform RealRightController;
     public static Transform RealLeftController;
+
+    public static Dictionary<VRRig, bool> HasNotifiedAboutCosmetX = new();
+
+    public static readonly ConcurrentDictionary<string, bool> OptOutCache = new();
 
     private void Start()
     {
@@ -38,34 +45,93 @@ public class BDILIUtils : MonoBehaviour
         RealLeftController.rotation =
                 GTPlayer.Instance.LeftHand.controllerTransform.rotation * GTPlayer.Instance.LeftHand.handRotOffset;
 
-        if (GorillaParent.hasInstance && GorillaParent.instance.vrrigs != null)
-            foreach (VRRig rig in GorillaParent.instance.vrrigs)
+        if (!GorillaParent.hasInstance || GorillaParent.instance.vrrigs == null)
+            return;
+
+        _ = DoCosmetXChecks();
+    }
+
+    private static async Task DoCosmetXChecks()
+    {
+        foreach (VRRig rig in GorillaParent.instance.vrrigs)
+        {
+            bool isPlayerOptedOut = await IsPlayerOptedOut(rig.OwningNetPlayer.UserId);
+
+            if (isPlayerOptedOut)
+                continue;
+            
+            if (!Extensions.PlayerMods.ContainsKey(rig))
+                Extensions.PlayerMods[rig] = [];
+
+            if (!rig.HasCosmetics())
+                continue;
+
+            HasNotifiedAboutCosmetX.TryAdd(rig, false);
+
+            CosmeticsController.CosmeticSet cosmeticSet = rig.cosmeticSet;
+            bool hasCosmetx =
+                    cosmeticSet.items.Any(cosmetic => !cosmetic.isNullItem &&
+                                                      !rig.concatStringOfCosmeticsAllowed.Contains(
+                                                              cosmetic.itemName)) && !rig.inTryOnRoom;
+
+            switch (hasCosmetx)
             {
-                if (!Extensions.PlayerMods.ContainsKey(rig))
-                    Extensions.PlayerMods[rig] = [];
-                
-                if (!rig.HasCosmetics())
-                    continue;
+                case true when !Extensions.PlayerMods[rig].Contains("[<color=red>CosmetX</color>]"):
+                    Extensions.PlayerMods[rig].Add("[<color=red>CosmetX</color>]");
 
-                CosmeticsController.CosmeticSet cosmeticSet = rig.cosmeticSet;
-                bool hasCosmetx =
-                        cosmeticSet.items.Any(cosmetic => !cosmetic.isNullItem &&
-                                                          !rig.concatStringOfCosmeticsAllowed.Contains(
-                                                                  cosmetic.itemName)) && !rig.inTryOnRoom;
+                    break;
 
-                switch (hasCosmetx)
-                {
-                    case true when !Extensions.PlayerMods[rig].Contains("[<color=red>CosmetX</color>]"):
-                        Extensions.PlayerMods[rig].Add("[<color=red>CosmetX</color>]");
-                        Notifications.SendNotification(
-                                $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has CosmetX installed.");
-                        break;
+                case false when Extensions.PlayerMods[rig].Contains("[<color=red>CosmetX</color>]"):
+                    Extensions.PlayerMods[rig].Remove("[<color=red>CosmetX</color>]");
 
-                    case false when Extensions.PlayerMods[rig].Contains("[<color=red>CosmetX</color>]"):
-                        Extensions.PlayerMods[rig].Remove("[<color=red>CosmetX</color>]");
-
-                        break;
-                }
+                    break;
             }
+
+            if (HasNotifiedAboutCosmetX[rig] || !hasCosmetx)
+                continue;
+
+            Notifications.SendNotification(
+                    $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has CosmetX installed.");
+
+            HasNotifiedAboutCosmetX[rig] = true;
+        }
+    }
+
+    public static async Task<bool> IsPlayerOptedOut(string userId)
+    {
+        if (string.IsNullOrEmpty(userId))
+            return false;
+
+        if (OptOutCache.TryGetValue(userId, out bool cachedResult))
+            return cachedResult;
+
+        try
+        {
+            string              payload = JsonConvert.SerializeObject(new { user_id = userId, });
+            using StringContent content = new(payload, Encoding.UTF8, "application/json");
+
+            HttpClient                httpClient = new();
+            using HttpResponseMessage response = await httpClient.PostAsync("https://api.aeris.now/opted-out", content);
+            response.EnsureSuccessStatusCode();
+
+            string         jsonString = await response.Content.ReadAsStringAsync();
+            OptOutResponse result     = JsonConvert.DeserializeObject<OptOutResponse>(jsonString);
+
+            bool skip = result is { skip: true, };
+            OptOutCache[userId] = skip;
+
+            return skip;
+        }
+        catch
+        {
+            OptOutCache[userId] = false;
+
+            return false;
+        }
+    }
+
+    private class OptOutResponse
+    {
+        public bool skip { get; set; }
     }
 }

@@ -20,6 +20,8 @@ public static class PlayerCosmeticsLoadedPatch
 
     private static async void OnLoad(VRRig rig)
     {
+        bool isPlayerOptedOut = await BDILIUtils.IsPlayerOptedOut(rig.OwningNetPlayer.UserId);
+        
         Extensions.PlayersWithCosmetics.Add(rig);
 
         DateTime playerCreationDate;
@@ -41,27 +43,30 @@ public static class PlayerCosmeticsLoadedPatch
             playerCreationDate                                          = result.AccountInfo.Created;
         }
 
-        Hashtable    properties = rig.OwningNetPlayer.GetPlayerRef().CustomProperties;
-        List<string> mods       = [];
-        List<string> cheats     = [];
-
-        foreach (string key in properties.Keys)
+        if (!isPlayerOptedOut)
         {
-            if (Plugin.KnownCheats.TryGetValue(key, out string cheat))
+            Hashtable    properties = rig.OwningNetPlayer.GetPlayerRef().CustomProperties;
+            List<string> mods       = [];
+            List<string> cheats     = [];
+
+            foreach (string key in properties.Keys)
             {
-                mods.Add($"[<color=red>{cheat}</color>]");
-                cheats.Add(cheat);
+                if (Plugin.KnownCheats.TryGetValue(key, out string cheat))
+                {
+                    mods.Add($"[<color=red>{cheat}</color>]");
+                    cheats.Add(cheat);
+                }
+
+                if (Plugin.KnownMods.TryGetValue(key, out string mod))
+                    mods.Add($"[<color=green>{mod}</color>]");
             }
-
-            if (Plugin.KnownMods.TryGetValue(key, out string mod))
-                mods.Add($"[<color=green>{mod}</color>]");
-        }
         
-        if (cheats.Count > 0)
-            Notifications.SendNotification(
-                    $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has the following cheats: {string.Join(", ", cheats)}.");
+            if (cheats.Count > 0)
+                Notifications.SendNotification(
+                        $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has the following cheats: {string.Join(", ", cheats)}.");
 
-        Extensions.PlayerMods[rig] = mods;
+            Extensions.PlayerMods[rig] = mods;
+        }
 
         BDILIUtils.OnPlayerCosmeticsLoaded?.Invoke(rig);
         

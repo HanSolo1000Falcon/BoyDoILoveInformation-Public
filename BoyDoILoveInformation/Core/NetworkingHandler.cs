@@ -21,7 +21,8 @@ public class NetworkingHandler : MonoBehaviour
 
     private GameObject emptyMenuPrefab;
 
-    private Dictionary<VRRig, GameObject> playerMenus = new();
+    private Dictionary<VRRig, GameObject> playerMenus    = new();
+    private Dictionary<VRRig, float>      lastTimeOpened = new();
 
     private void Start()
     {
@@ -35,6 +36,7 @@ public class NetworkingHandler : MonoBehaviour
                                                   playerMenus[rig].SetActive(false);
                                                   playerMenus[rig].transform.localPosition = NetworkedMenuLocalPosition;
                                                   playerMenus[rig].transform.localRotation = NetworkedMenuLocalRotation;
+                                                  lastTimeOpened[rig] = Time.time;
                                               };
         BDILIUtils.OnPlayerRigCached       += rig =>
                                               {
@@ -43,6 +45,7 @@ public class NetworkingHandler : MonoBehaviour
                                                   
                                                   Destroy(menu);
                                                   playerMenus.Remove(rig);
+                                                  lastTimeOpened.Remove(rig);
                                               };
 
         OnMenuStateUpdate += open => PhotonNetwork.RaiseEvent(NetworkingByte, open,
@@ -57,16 +60,11 @@ public class NetworkingHandler : MonoBehaviour
                                                                    .FirstOrDefault(rig => rig.OwningNetPlayer.ActorNumber ==
                                                                         eventData.Sender);
 
-                                                            if (sender == null)
+                                                            if (sender == null || !playerMenus.ContainsKey(sender) || !eventData.Parameters.TryGetValue(ParameterCode.Data, out object data) || data is not bool menuEnabled || lastTimeOpened[sender] + 0.05f > Time.time)
                                                                 return;
                                                             
-                                                            if (!playerMenus.ContainsKey(sender))
-                                                                return;
-                                                            
-                                                            if (!eventData.Parameters.TryGetValue(ParameterCode.Data, out object data))
-                                                                return;
-                                                            
-                                                            playerMenus[sender].SetActive((bool)data);
+                                                            lastTimeOpened[sender] = Time.time;
+                                                            playerMenus[sender].SetActive(menuEnabled);
                                                         };
     }
 }

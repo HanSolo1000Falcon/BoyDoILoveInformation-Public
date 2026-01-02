@@ -6,6 +6,7 @@ using BoyDoILoveInformation.Tools;
 using GorillaLocomotion;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
 namespace BoyDoILoveInformation.Core;
 
@@ -31,7 +32,7 @@ public class Notifications : MonoBehaviour
         canvas.transform.localRotation = Quaternion.Euler(345f, 0f, 0f);
 
         notificationText = canvas.GetComponentInChildren<Text>();
-        canvas.SetLayer(UnityLayer.FirstPersonOnly);
+        canvas.SetLayer(XRSettings.isDeviceActive ? UnityLayer.FirstPersonOnly : UnityLayer.Default);
         ApplyNotificationText();
     }
 
