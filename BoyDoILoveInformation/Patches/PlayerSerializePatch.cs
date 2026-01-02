@@ -12,7 +12,7 @@ public static class PlayerSerializePatch
     {
         double ping     = Math.Abs((__instance.velocityHistoryList[0].time - PhotonNetwork.Time) * 1000);
         int    safePing = (int)Math.Clamp(Math.Round(ping), 0, int.MaxValue);
-        
+
         Extensions.PlayerPing[__instance] = safePing;
     }
 }

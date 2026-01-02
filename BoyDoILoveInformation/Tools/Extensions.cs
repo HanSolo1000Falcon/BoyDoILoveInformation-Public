@@ -46,7 +46,7 @@ public static class Extensions
 
     public static int GetPing(this VRRig rig) =>
             PlayerPing.TryGetValue(rig, out int ping) ? ping : PhotonNetwork.GetPing();
-    
+
     public static string InsertNewlinesWithRichText(this string input, int interval)
     {
         if (string.IsNullOrEmpty(input) || interval <= 0)

@@ -15,10 +15,10 @@ public class ActionsHandler : TabHandlerBase
                                                                                 GorillaScoreboardTotalUpdater
                                                                                        .allScoreboardLines
                                                                                        .FirstOrDefault(line =>
-                                                                                                line.linePlayer ==
-                                                                                                InformationHandler
-                                                                                                       .ChosenRig
-                                                                                                       .OwningNetPlayer);
+                                                                                                    line.linePlayer ==
+                                                                                                    InformationHandler
+                                                                                                           .ChosenRig
+                                                                                                           .OwningNetPlayer);
 
                                                                         if (scoreboardLine == null)
                                                                             return;
@@ -34,10 +34,10 @@ public class ActionsHandler : TabHandlerBase
                                                                                 GorillaScoreboardTotalUpdater
                                                                                        .allScoreboardLines
                                                                                        .FirstOrDefault(line =>
-                                                                                                line.linePlayer ==
-                                                                                                InformationHandler
-                                                                                                       .ChosenRig
-                                                                                                       .OwningNetPlayer);
+                                                                                                    line.linePlayer ==
+                                                                                                    InformationHandler
+                                                                                                           .ChosenRig
+                                                                                                           .OwningNetPlayer);
 
                                                                         if (scoreboardLine == null)
                                                                             return;
@@ -53,10 +53,10 @@ public class ActionsHandler : TabHandlerBase
                                                                                 GorillaScoreboardTotalUpdater
                                                                                        .allScoreboardLines
                                                                                        .FirstOrDefault(line =>
-                                                                                                line.linePlayer ==
-                                                                                                InformationHandler
-                                                                                                       .ChosenRig
-                                                                                                       .OwningNetPlayer);
+                                                                                                    line.linePlayer ==
+                                                                                                    InformationHandler
+                                                                                                           .ChosenRig
+                                                                                                           .OwningNetPlayer);
 
                                                                         if (scoreboardLine == null)
                                                                             return;
@@ -72,10 +72,10 @@ public class ActionsHandler : TabHandlerBase
                                                                                 GorillaScoreboardTotalUpdater
                                                                                        .allScoreboardLines
                                                                                        .FirstOrDefault(line =>
-                                                                                                line.linePlayer ==
-                                                                                                InformationHandler
-                                                                                                       .ChosenRig
-                                                                                                       .OwningNetPlayer);
+                                                                                                    line.linePlayer ==
+                                                                                                    InformationHandler
+                                                                                                           .ChosenRig
+                                                                                                           .OwningNetPlayer);
 
                                                                         if (scoreboardLine == null)
                                                                             return;
@@ -91,8 +91,8 @@ public class ActionsHandler : TabHandlerBase
                                                                         transform.GetChild(3)
                                                                                .GetComponentInChildren<TextMeshPro>()
                                                                                .text = scoreboardLine.muteButton.isOn
-                                                                                ? "Unmute"
-                                                                                : "Mute";
+                                                                                    ? "Unmute"
+                                                                                    : "Mute";
                                                                     };
 
         transform.GetChild(4).AddComponent<BDILIButton>().OnPress = () =>
@@ -111,11 +111,11 @@ public class ActionsHandler : TabHandlerBase
                                                                         transform.GetChild(4)
                                                                                .GetComponentInChildren<TextMeshPro>()
                                                                                .text = VoicePrioritizationPatch
-                                                                               .PrioritizedPeople.Contains(
-                                                                                        InformationHandler
-                                                                                               .ChosenRig)
-                                                                                ? "Unprioritize"
-                                                                                : "Prioritize";
+                                                                                   .PrioritizedPeople.Contains(
+                                                                                            InformationHandler
+                                                                                                   .ChosenRig)
+                                                                                    ? "Unprioritize"
+                                                                                    : "Prioritize";
                                                                     };
 
         transform.GetChild(5).AddComponent<BDILIButton>().OnPress =

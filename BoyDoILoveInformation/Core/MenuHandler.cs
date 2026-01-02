@@ -16,9 +16,9 @@ public class MenuHandler : MonoBehaviour
     public static readonly Vector3    BaseMenuPosition = new(0.25f, 0f, 0.05f);
     public static readonly Quaternion BaseMenuRotation = Quaternion.Euler(300f, 0f, 180f);
 
-    public bool IsMenuOpen;
-
     public static GameObject Menu;
+
+    public bool IsMenuOpen;
 
     private bool wasPressed;
 
@@ -45,9 +45,11 @@ public class MenuHandler : MonoBehaviour
     {
         bool isPressed = Plugin.MenuOpenButton.Value switch
                          {
-                                 ButtonType.LeftSecondary => ControllerInputPoller.instance.leftControllerSecondaryButton,
-                                 ButtonType.RightSecondary => ControllerInputPoller.instance.rightControllerSecondaryButton,
-                                 ButtonType.LeftPrimary => ControllerInputPoller.instance.leftControllerPrimaryButton,
+                                 ButtonType.LeftSecondary => ControllerInputPoller.instance
+                                        .leftControllerSecondaryButton,
+                                 ButtonType.RightSecondary => ControllerInputPoller.instance
+                                        .rightControllerSecondaryButton,
+                                 ButtonType.LeftPrimary  => ControllerInputPoller.instance.leftControllerPrimaryButton,
                                  ButtonType.RightPrimary => ControllerInputPoller.instance.rightControllerPrimaryButton,
                          };
 

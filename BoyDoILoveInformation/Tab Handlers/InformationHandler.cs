@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Threading.Tasks;
 using BoyDoILoveInformation.Tools;
 using GorillaLocomotion;
 using TMPro;
@@ -100,9 +99,13 @@ public class InformationHandler : TabHandlerBase
 
             if (lastUpdate + 0.1f < Time.time)
             {
-                string     pingColour       = ChosenRig.GetPing() > 100 ? ChosenRig.GetPing() > 250 ? "red" : "orange" : "green";
-                bool isPlayerOptedOut = BDILIUtils.OptOutCache.ContainsKey(ChosenRig.OwningNetPlayer.UserId) && BDILIUtils.OptOutCache[ChosenRig.OwningNetPlayer.UserId];
-                ping.text = !isPlayerOptedOut ? $"<color={pingColour}>{ChosenRig.GetPing()}</color> ms" : $"<color=green>{Random.Range(50, 60)}</color> ms";
+                string pingColour = ChosenRig.GetPing() > 100 ? ChosenRig.GetPing() > 250 ? "red" : "orange" : "green";
+                bool isPlayerOptedOut = BDILIUtils.OptOutCache.ContainsKey(ChosenRig.OwningNetPlayer.UserId) &&
+                                        BDILIUtils.OptOutCache[ChosenRig.OwningNetPlayer.UserId];
+
+                ping.text = !isPlayerOptedOut
+                                    ? $"<color={pingColour}>{ChosenRig.GetPing()}</color> ms"
+                                    : $"<color=green>{Random.Range(50, 60)}</color> ms";
 
                 Vector3 playerSpeed = (ChosenRig.transform.position - lastPos) / (Time.time - lastUpdate);
                 lastPos = ChosenRig.transform.position;
@@ -111,16 +114,22 @@ public class InformationHandler : TabHandlerBase
                                              : "red";
 
                 velocity.text = $"<color={speedColour}>{playerSpeed.magnitude:F1}</color> m/s";
-                
+
                 int    fpsInt = ChosenRig.fps;
                 string colour = fpsInt < 60 ? "red" : fpsInt < 72 ? "yellow" : "green";
-                fps.text        = !isPlayerOptedOut ? $"<color={colour}>{fpsInt}</color> FPS" : $"<color=green>{Random.Range(87, 91)}</color> FPS";
+                fps.text = !isPlayerOptedOut
+                                   ? $"<color={colour}>{fpsInt}</color> FPS"
+                                   : $"<color=green>{Random.Range(87, 91)}</color> FPS";
+
                 colourCode.text = ParseIntoColourCode(ChosenRig.playerColor);
-                
+
                 lastUpdate = Time.time;
             }
 
-            bool isPressed = Plugin.MenuOpenButton.Value == ButtonType.RightSecondary ? ControllerInputPoller.instance.rightControllerPrimaryButton : ControllerInputPoller.instance.rightControllerSecondaryButton;
+            bool isPressed = Plugin.MenuOpenButton.Value == ButtonType.RightSecondary
+                                     ? ControllerInputPoller.instance.rightControllerPrimaryButton
+                                     : ControllerInputPoller.instance.rightControllerSecondaryButton;
+
             if (isPressed)
             {
                 ChosenRig = null;
@@ -153,7 +162,10 @@ public class InformationHandler : TabHandlerBase
         if (rig == null)
             return;
 
-        string special = Plugin.HanSoloPlayerIDs.Contains(rig.OwningNetPlayer.UserId) ? " : <color=yellow>HanSolo1000Falcon</color>" : "";
+        string special = Plugin.HanSoloPlayerIDs.Contains(rig.OwningNetPlayer.UserId)
+                                 ? " : <color=yellow>HanSolo1000Falcon</color>"
+                                 : "";
+
         playerName.text          = rig.OwningNetPlayer.SanitizedNickName + special;
         accountCreationDate.text = rig.GetAccountCreationDate().ToString("dd/MM/yyyy");
         platform.text            = rig.GetPlatform().ParsePlatform();

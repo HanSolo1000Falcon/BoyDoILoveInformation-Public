@@ -21,7 +21,7 @@ public static class PlayerCosmeticsLoadedPatch
     private static async void OnLoad(VRRig rig)
     {
         bool isPlayerOptedOut = await BDILIUtils.IsPlayerOptedOut(rig.OwningNetPlayer.UserId);
-        
+
         Extensions.PlayersWithCosmetics.Add(rig);
 
         DateTime playerCreationDate;
@@ -60,7 +60,7 @@ public static class PlayerCosmeticsLoadedPatch
                 if (Plugin.KnownMods.TryGetValue(key, out string mod))
                     mods.Add($"[<color=green>{mod}</color>]");
             }
-        
+
             if (cheats.Count > 0)
                 Notifications.SendNotification(
                         $"[<color=red>Cheater</color>] Player {rig.OwningNetPlayer.SanitizedNickName} has the following cheats: {string.Join(", ", cheats)}.");
@@ -69,7 +69,7 @@ public static class PlayerCosmeticsLoadedPatch
         }
 
         BDILIUtils.OnPlayerCosmeticsLoaded?.Invoke(rig);
-        
+
         string cosmeticsAllowed = rig.concatStringOfCosmeticsAllowed.ToLower();
 
         if (cosmeticsAllowed.Contains("s. first login"))

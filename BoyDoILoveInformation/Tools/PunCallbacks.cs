@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using BoyDoILoveInformation.Core;
 using ExitGames.Client.Photon;
 using Photon.Pun;
@@ -11,7 +10,7 @@ namespace BoyDoILoveInformation.Tools;
 public class PunCallbacks : MonoBehaviourPunCallbacks
 {
     public static Dictionary<VRRig, List<string>> CheatsNotifiedAbout = new();
-    
+
     public override async void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
     {
         try

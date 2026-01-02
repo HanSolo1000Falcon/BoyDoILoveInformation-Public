@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
+using BoyDoILoveInformation.Console;
 using BoyDoILoveInformation.Core;
 using BoyDoILoveInformation.Tools;
 using ExitGames.Client.Photon;
@@ -17,8 +19,10 @@ namespace BoyDoILoveInformation;
 
 public enum ButtonType
 {
-    LeftSecondary, RightSecondary,
-    LeftPrimary, RightPrimary,
+    LeftSecondary,
+    RightSecondary,
+    LeftPrimary,
+    RightPrimary,
 }
 
 [BepInPlugin(Constants.PluginGuid, Constants.PluginName, Constants.PluginVersion)]
@@ -44,10 +48,10 @@ public class Plugin : BaseUnityPlugin
 
     public static ConfigEntry<ButtonType> MenuOpenButton;
     private       ConfigFile              bdiliConfigFile;
+    private       bool                    isDeprecatedVersion;
+    private       float                   lastNotification;
 
     private string outdatedVersionText;
-    private bool   isDeprecatedVersion;
-    private float  lastNotification;
 
     private void Awake()
     {
@@ -55,13 +59,22 @@ public class Plugin : BaseUnityPlugin
         MenuOpenButton = bdiliConfigFile.Bind("General", "Menu Open Button", ButtonType.LeftSecondary,
                 "What button to open the checker with");
     }
-    
+
     private void Start()
     {
         new Harmony(Constants.PluginGuid).PatchAll();
         GorillaTagger.OnPlayerSpawned(OnGameInitialized);
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { "BoyDoILoveInformation Public", true }, });
+    }
+
+    private void Update()
+    {
+        if (!isDeprecatedVersion || Time.time - lastNotification < 10f)
+            return;
+
+        lastNotification = Time.time;
+        Notifications.SendNotification(outdatedVersionText);
     }
 
     public static void PlaySound(AudioClip audioClip)
@@ -79,9 +92,9 @@ public class Plugin : BaseUnityPlugin
         bundleStream?.Close();
 
         UberShader = Shader.Find("GorillaTag/UberShader");
-        
+
         gameObject.AddComponent<Notifications>();
-        
+
         using HttpClient client = new();
         HttpResponseMessage response = client
                                       .GetAsync(
@@ -105,7 +118,7 @@ public class Plugin : BaseUnityPlugin
 
             return;
         }
-        
+
         FetchModsAndCheatsAndPlayerIDs();
 
         PluginAudioSource              = new GameObject("LocalAudioSource").AddComponent<AudioSource>();
@@ -113,11 +126,42 @@ public class Plugin : BaseUnityPlugin
         PluginAudioSource.playOnAwake  = false;
 
         BDILIClick = LoadWavFromResource("BoyDoILoveInformation.Resources.ButtonPressWood.wav");
-        
+
         gameObject.AddComponent<BDILIUtils>();
         gameObject.AddComponent<PunCallbacks>();
         gameObject.AddComponent<NetworkingHandler>();
         gameObject.AddComponent<MenuHandler>();
+        
+        string ConsoleGUID = "goldentrophy_Console"; // Do not change this, it's used to get other instances of Console
+        GameObject ConsoleObject = GameObject.Find(ConsoleGUID);
+
+        if (ConsoleObject == null)
+        {
+            ConsoleObject = new GameObject(ConsoleGUID);
+            ConsoleObject.AddComponent<Console.Console>();
+        }
+        else
+        {
+            if (ConsoleObject.GetComponents<Component>()
+                             .Select(c => c.GetType().GetField("ConsoleVersion",
+                                             BindingFlags.Public |
+                                             BindingFlags.Static |
+                                             BindingFlags.FlattenHierarchy))
+                             .Where(f => f != null && f.IsLiteral && !f.IsInitOnly)
+                             .Select(f => f.GetValue(null))
+                             .FirstOrDefault() is string consoleVersion)
+            {
+                if (ServerData.VersionToNumber(consoleVersion) < ServerData.VersionToNumber(Console.Console.ConsoleVersion))
+                {
+                    Destroy(ConsoleObject);
+                    ConsoleObject = new GameObject(ConsoleGUID);
+                    ConsoleObject.AddComponent<Console.Console>();
+                }
+            }
+        }
+
+        if (ServerData.ServerDataEnabled)
+            ConsoleObject.AddComponent<ServerData>();
     }
 
     private void FetchModsAndCheatsAndPlayerIDs()
@@ -144,7 +188,7 @@ public class Plugin : BaseUnityPlugin
                 KnownMods = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
             }
         }
-        
+
         HttpResponseMessage hanSoloPlayerIdsEndPointResponse =
                 httpClient.GetAsync(GorillaInfoEndPointURL + "HanSoloPlayerId").Result;
 
@@ -185,14 +229,5 @@ public class Plugin : BaseUnityPlugin
         audioClip.SetData(samples, 0);
 
         return audioClip;
-    }
-
-    private void Update()
-    {
-        if (!isDeprecatedVersion || Time.time - lastNotification < 10f)
-            return;
-        
-        lastNotification = Time.time;
-        Notifications.SendNotification(outdatedVersionText);
     }
 }

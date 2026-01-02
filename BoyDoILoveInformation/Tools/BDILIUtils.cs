@@ -59,7 +59,7 @@ public class BDILIUtils : MonoBehaviour
 
             if (isPlayerOptedOut)
                 continue;
-            
+
             if (!Extensions.PlayerMods.ContainsKey(rig))
                 Extensions.PlayerMods[rig] = [];
 
