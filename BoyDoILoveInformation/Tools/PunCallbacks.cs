@@ -11,11 +11,30 @@ namespace BoyDoILoveInformation.Tools;
 public class PunCallbacks : MonoBehaviourPunCallbacks
 {
     public static Dictionary<VRRig, List<string>> CheatsNotifiedAbout = new();
-    
+    private static readonly HashSet<string> CheckedPlayers = new();
+    private static string currentRoom;
+    public override void OnJoinedRoom()
+    {
+        ResetLobbyTracking();
+    }
+
+    public override void OnLeftRoom()
+    {
+        ResetLobbyTracking();
+    }
     public override async void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
     {
         try
         {
+            SyncLobbyTracking();
+            string userId = targetPlayer.UserId;
+    
+            if (string.IsNullOrEmpty(userId))
+                return;
+    
+            if (CheckedPlayers.Contains(userId))
+                return;
+
             VRRig rig = GorillaParent.instance.vrrigs.Find(rig => rig.OwningNetPlayer.GetPlayerRef()
                                                                      .Equals(targetPlayer));
 
@@ -68,5 +87,18 @@ public class PunCallbacks : MonoBehaviourPunCallbacks
         {
             // ignored
         }
+    }
+    private static void SyncLobbyTracking()
+    {
+        string roomName = PhotonNetwork.CurrentRoom?.Name;
+
+        if (roomName != currentRoom)
+            ResetLobbyTracking();
+    }
+
+    private static void ResetLobbyTracking()
+    {
+        CheckedPlayers.Clear();
+        currentRoom = PhotonNetwork.CurrentRoom?.Name;
     }
 }
