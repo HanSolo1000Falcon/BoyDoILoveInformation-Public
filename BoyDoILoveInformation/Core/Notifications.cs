@@ -6,15 +6,17 @@ using BoyDoILoveInformation.Tools;
 using GorillaLocomotion;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR;
 
 namespace BoyDoILoveInformation.Core;
 
 public class Notifications : MonoBehaviour
 {
-    private static   Notifications            Instance;
-    private readonly Dictionary<Guid, string> notifications = new();
-    private          GameObject               canvas;
+    private const int MaxNotifications = 15;
+
+    private static Notifications Instance;
+
+    private readonly List<(Guid Id, string Message)> notifications = new();
+    private          GameObject                      canvas;
 
     private Text notificationText;
 
@@ -32,7 +34,7 @@ public class Notifications : MonoBehaviour
         canvas.transform.localRotation = Quaternion.Euler(345f, 0f, 0f);
 
         notificationText = canvas.GetComponentInChildren<Text>();
-        canvas.SetLayer(XRSettings.isDeviceActive ? UnityLayer.FirstPersonOnly : UnityLayer.Default);
+        canvas.SetLayer(UnityLayer.FirstPersonOnly);
         ApplyNotificationText();
     }
 
@@ -40,7 +42,12 @@ public class Notifications : MonoBehaviour
     {
         Guid notificationId = Guid.NewGuid();
         message                                = message.InsertNewlinesWithRichText(40);
-        Instance.notifications[notificationId] = message;
+        Instance.notifications.Add((notificationId, message));
+        if (Instance.notifications.Count > MaxNotifications)
+        {
+            Instance.notifications.RemoveAt(0);
+        }
+
         Instance.ApplyNotificationText();
         Instance.StartCoroutine(Instance.RemoveNotificationAfterTime(notificationId));
     }
@@ -48,8 +55,11 @@ public class Notifications : MonoBehaviour
     private IEnumerator RemoveNotificationAfterTime(Guid notificationId)
     {
         yield return new WaitForSeconds(10f);
-        notifications.Remove(notificationId);
-        ApplyNotificationText();
+        int removed = notifications.RemoveAll(notification => notification.Id == notificationId);
+        if (removed > 0)
+        {
+            ApplyNotificationText();
+        }
     }
 
     private void ApplyNotificationText()
@@ -58,7 +68,7 @@ public class Notifications : MonoBehaviour
         const int MinSize  = 16;
         const int Step     = 4;
 
-        string[] ordered = notifications.Values.ToArray();
+        string[] ordered = notifications.Select(notification => notification.Message).ToArray();
         string   text    = string.Empty;
 
         for (int i = ordered.Length - 1; i > -1; i--)
